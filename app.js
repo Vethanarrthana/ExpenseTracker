@@ -135,4 +135,21 @@ app.put("/api/expenses/:id",async(req,res)=>{
     }
 });
 
+//delete
+app.delete('/api/expenses/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedExpense = await expenseModel.findOneAndDelete({ id });
+
+        if (!deletedExpense) {
+            return res.status(404).json({ message: "Expense not found" });
+        }
+
+        res.status(200).json({ message: "Expense deleted successfully", deletedExpense });
+    } catch (error) {
+        console.error(error); 
+        res.status(500).json({ message: "Error deleting expense", error: error.message });
+    }
+});
 
