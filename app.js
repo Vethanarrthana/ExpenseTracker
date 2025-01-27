@@ -42,7 +42,7 @@ const mongoose = require("mongoose");
 const app = express();
 const port = 5500;
 
-const mongoUrl = "mongodb://localhost:27017/local"; 
+const mongoUrl = "mongodb+srv://vetha:vetha@cluster0.4tigb.mongodb.net/ExpenseTracker"; 
 
 mongoose.connect(mongoUrl)
 .then(() => {
@@ -152,4 +152,3 @@ app.delete('/api/expenses/:id', async (req, res) => {
         res.status(500).json({ message: "Error deleting expense", error: error.message });
     }
 });
-
