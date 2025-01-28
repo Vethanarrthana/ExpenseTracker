@@ -36,11 +36,13 @@
 // }
 // });
 
+const cors=require("cors");
 const express = require("express");
 const req = require("express/lib/request");
 const mongoose = require("mongoose");
 const app = express();
 const port = 5500;
+app.use(cors());
 
 const mongoUrl = "mongodb+srv://vetha:vetha@cluster0.4tigb.mongodb.net/ExpenseTracker"; 
 
