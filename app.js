@@ -41,6 +41,8 @@ const express = require("express");
 const req = require("express/lib/request");
 const mongoose = require("mongoose");
 const app = express();
+const jwt=require("jsonwebtoken");
+const bcrypt=require("bcrypt");
 const port = 5500;
 app.use(cors());
 
@@ -154,3 +156,56 @@ app.delete('/api/expenses/:id', async (req, res) => {
         res.status(500).json({ message: "Error deleting expense", error: error.message });
     }
 });
+
+const userSchema=new mongoose.Schema({
+    username:{type:String,required:true,unique:true},
+    password:{type:String,required:true}
+});
+const user=mongoose.model("user",userSchema);
+
+app.post("/api/register",async(req,res)=>{
+    const {username,password}=req.body;
+    const hashedPassword=await bcrypt.hash(password,10);
+    const newUser=new user({
+        username,
+        password:hashedPassword
+    });
+    const savedUser=await newUser.save();
+    res.status(200).json({message:"User registered successfully",user:savedUser});
+});
+
+app.post("/api/login",async(req,res)=>{
+    const {username,password}=req.body;
+    const userData=await user.findOne({username});
+    
+    const isValidPassword=await bcrypt.compare(password,userData.password);
+    if(!isValidPassword)
+    {
+        return res.status(400).json({message:"Invalid credentials"});
+    }
+
+    const token=jwt.sign({username:userData.username},"my-key",{expiresIn:"1h"});
+    res.status(200).json({message:"Login successful",token});
+});
+
+const authorize=(req,res,next)=>{
+    const token=req.headers["authorization"]?.split(" ")[1];
+    console.log({token});
+    if(!token)
+    {
+        return res.status(401).json({message:"No token provided"});
+    }
+    jwt.verify(token,"my-key",(error,userInfo)=>{
+        if(error)
+        {
+            return res.status(401).json({message:"Unauthorized"});
+        }
+        req.user=userInfo;
+        next();
+    });
+}
+
+app.get("/api/secured",authorize,(req,res)=>{
+    res.json({message:"Access granted",user:req.user});
+});
+
